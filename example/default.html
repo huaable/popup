@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title></title>
     <link rel="stylesheet" href="../popup.css"/>
-    <script src="../jquery-1.11.1.min.js"></script>
-    <script src="../popup.js"></script>
-    <script src="../popup-extend.js"></script>
+    <!--<script src="../jquery-1.11.1.min.js"></script>-->
+    <script src="zepto.min.js"></script>
+    <script src="../popup.min.js"></script>
 </head>
 <style>
 
@@ -63,7 +63,6 @@
     <button id="popup-alert" class="btn btn-block">alert</button>
     <button id="popup-confirm" class=" btn btn-block">confirm</button>
     <button id="popup-cute" class="btn btn-block">cute</button>
-    <button id="popup-modal-cute" class=" btn btn-block">modalCute</button>
     <button id="popup-loading" class="btn btn-block">loadingStart && loadingStop</button>
     <button id="select" class="btn btn-block">请选择 popup.select()</button>
     <select name="select" id="select-option" hidden="hidden">
@@ -71,46 +70,43 @@
         <option value="2" selected>值2</option>
         <option value="3">值3</option>
     </select>
-    <script>
-
-        $("#popup-alert").click(function () {
-            popup.alert("标题", "消息内容", function () {
-                popup.cute("点击后执行回调函数");
-            });
-        })
-
-        $("#popup-confirm").click(function () {
-            popup.confirm("标题", "消息内容", function () {
-                popup.cute("点击确认后执行回调函数");
-            }, function () {
-                popup.cute("点击取消后执行回调函数");
-            });
-        })
-
-        $("#popup-cute").click(function () {
-            popup.cute("消息内容", 3000);
-        })
-
-        $("#popup-modal-cute").click(function () {
-            popup.modalCute("消息内容", 3000, function () {
-                alert("提示消息结束后执行回调函数");
-            });
-        })
-
-        $("#popup-loading").click(function () {
-            popup.loadingStart();
-            setTimeout(function () {
-                popup.loadingStop();
-            }, 3000);
-        })
-
-        $("#select").click(function () {
-            var p = popup.select("#select-option", function (value) {
-                alert(value)
-            })
-        });
-    </script>
 </div>
+
+<script>
+
+    $("#popup-alert").click(function () {
+        popup.alert("标题", "消息内容", function () {
+            popup.cute("点击后执行回调函数");
+        });
+    })
+
+    $("#popup-confirm").click(function () {
+        popup.confirm("标题", "消息内容", function () {
+            popup.cute("点击确认后执行回调函数");
+        }, function () {
+            popup.cute("点击取消后执行回调函数");
+        });
+    })
+
+    $("#popup-cute").click(function () {
+        popup.cute("消息内容", 3000);
+    })
+
+
+    $("#popup-loading").click(function () {
+        popup.loadingStart();
+        setTimeout(function () {
+            popup.loadingStop();
+        }, 3000);
+    })
+
+    $("#select").click(function () {
+        var p = popup.select("#select-option", function (value) {
+            alert(value)
+        })
+    });
+
+</script>
 
 <div class="cate-heading">使用类名便捷调用</div>
 <div class="content-block">
@@ -147,10 +143,6 @@
             data-popup-timeout="0">
         不自动消失 .popup-cute
     </button>
-    <button class="popup-modal-cute btn btn-block"
-            data-popup-content="便捷提示内容">
-        .popup-modal-cute
-    </button>
     <button class="popup-loading btn btn-block">.popup-loadingStart</button>
     <button id="select2" class="btn btn-block popup-select" data-popup-data-selector="#select-option2">值2</button>
     <select name="select2" id="select-option2" hidden="hidden">
@@ -158,59 +150,57 @@
         <option value="2" selected>值2</option>
         <option value="3">值3</option>
     </select>
-    <script>
-        $("#select-option2").change(function () {
-            var selectOption = $("option[value='" + this.value + "']", this)
-            $("#select2").html("change事件==>" + selectOption.html())
-        });
-    </script>
+
 </div>
 
-<div class="cate-heading">自定义 select 原理代码演示</div>
-<script type="text/html" id="select-html">
-    <ul class="popup-select-list">
-        <li class="item" data-callback="selectCallback" data-value="1">选项1</li>
-        <li class="item" data-callback="selectCallback" data-value="2">选项2</li>
-        <li class="item" data-callback="selectCallback" data-value="3">选项3</li>
-        <li class="item" data-callback="selectCallback" data-value="4">选项4</li>
-        <li class="item" data-callback="selectCallback" data-value="5">选项5</li>
-        <li class="item" data-callback="selectCallback" data-value="6">选项6</li>
-        <li class="item" data-callback="selectCallback" data-value="7">选项7</li>
-        <li class="item" data-callback="selectCallback" data-value="8">选项8</li>
-        <li class="item" data-callback="selectCallback" data-value="9">选项9</li>
-        <li class="item" data-callback="selectCallback" data-value="10">选项10</li>
-    </ul>
-</script>
-<div class="content-block">
-    <button id="select-demo" class="btn btn-block">请选择</button>
-</div>
+
 <script>
+    // 类名快捷调用 事件委托绑定
+    $(document).on("click", ".popup-alert", function () {
+        var title = $(this).data("popup-title");
+        var content = $(this).data("popup-content");
+        popup.alert(title, content);
+    })
 
-    var oSelectHandle = $("#select-demo")
-    oSelectHandle.click(function () {
-        var p = $.popup({
-            title: "请选择",
-            content: $("#select-html").html(),
-            className: "popup-css-select",
-            //fullScreen:true,
-            callback: {
-                selectCallback: function (event, popup) {
-                    var oLi = $(event.target);
-                    var value = oLi.data("value");
-                    popup.remove();
-                    oSelectHandle.attr("result", value).trigger("select");
-                    //同样也可以给其他表单赋值,触发表单change事件
-                }
-            }
+    $(document).on("click", ".popup-confirm", function (e) {
+        var title = $(this).data("popup-title");
+        var content = $(this).data("popup-content");
+        var href = $(this).attr("href") || $(this).data("href");
+        var yesCallback = $(this).data("popup-yes-callback");
+        var noCallback = $(this).data("popup-no-callback");
+        popup.confirm(title, content, function () {
+            href && (window.location.href = href);
+            yesCallback && eval(yesCallback);
+        }, function () {
+            noCallback && eval(noCallback);
         });
-        p.show();
+        e.stopPropagation();
+        e.preventDefault();
     })
 
-    oSelectHandle.on("select", function () {
-        var value = $(this).attr("result");
-        $(this).html("callback 选择结果value:" + value);
+    $(document).on("click", ".popup-cute", function () {
+        var title = $(this).data("popup-title");
+        var content = $(this).data("popup-content");
+        var timeout = parseInt($(this).data("popup-timeout"));
+        popup.cute(content, timeout);
     })
+
+    $(document).on("click", ".popup-loading", function () {
+        popup.loadingStart();
+    })
+    $(document).on("click", ".popup-select", function () {
+        var selector = $(this).data("popup-data-selector");
+        popup.select(selector, function (value) {
+            $(selector)[0].value = value//.trigger("change");
+        })
+    })
+
+    $("#select-option2").change(function () {
+        var selectOption = $("option[value='" + this.value + "']", this)
+        $("#select2").html("change事件==>" + selectOption.html())
+    });
 </script>
+
 
 </body>
 </html>

@@ -1,38 +1,40 @@
-/**
- * popup.js
- * @author  Xiao Hua <coolr@foxmail.com>
- * @since   1.0
- *
- var settings = {
-        close: "remove",// remove | hide | function 关闭popup执行的真正函数,close相当于关闭弹出的函数别名
-        title: "", // string | jq对象
-        content: "", // string | jq对象
-        button: [//[]空数组时没有按钮
-            {
-                "text": "是",
-                "action": function (event, popup, button, index) {
-                    popup.close()
-                }
-            },
-            {
-                "text": "否",
-                "action": function (event, popup, button, index) {
-                    popup.close()
-                }
-            }
-        ],
-        width: " 90%", //"300px" | 50% 设置主体宽度度
-        height: "auto", //"300px" | 50%\ auto 设置主体高度（不包括头和脚）
-        fullScreen: false, // true | false 全屏显示
-        modal: false, //true 模态 | false 非模态（点击遮罩不移除弹出层）
-        className: "",//添加自定义样式名
-        callback: {
-            "clickCallbackExample": function (event, popup) {//在属于popup内部dom上自定义data-callback="clickCallbackExample"属性,点击后会回调执行这里
-            }
-        }
-    }
- */
-(function ($) {
+
+;(function ($) {
+
+	/*!
+	 * popup.js
+	 * @author  Xiao Hua <coolr@foxmail.com>
+	 * @since   1.0
+	 *
+	 var settings = {
+	 close: "remove",// remove | hide | function 关闭popup执行的真正函数,close相当于关闭弹出的函数别名
+	 title: "", // string | jq对象
+	 content: "", // string | jq对象
+	 button: [//[]空数组时没有按钮
+	 {
+	 "text": "是",
+	 "action": function (event, popup, button, index) {
+	 popup.close()
+	 }
+	 },
+	 {
+	 "text": "否",
+	 "action": function (event, popup, button, index) {
+	 popup.close()
+	 }
+	 }
+	 ],
+	 width: " 90%", //"300px" | 50% 设置主体宽度度
+	 height: "auto", //"300px" | 50%\ auto 设置主体高度（不包括头和脚）
+	 fullScreen: false, // true | false 全屏显示
+	 modal: false, //true 模态 | false 非模态（点击遮罩不移除弹出层）
+	 className: "",//添加自定义样式名
+	 callback: {
+	 "clickCallbackExample": function (event, popup) {//在属于popup内部dom上自定义data-callback="clickCallbackExample"属性,点击后会回调执行这里
+	 }
+	 }
+	 }
+	 */
 	$.popup = function (options) {
 		return new popup(options)
 	};
@@ -187,4 +189,125 @@
 			}
 		}
 	}
-}(jQuery));
+
+	// 扩展函数
+	var popupFn = {}
+	popupFn.alert = function (title, content, callback) {
+		var p = $.popup({
+			title: title,
+			content: content,
+			modal: true,
+			className: "popup-css-alert",
+			button: [
+				{
+					"text": "确认",
+					"action": function (event, popup, button, index) {
+						popup.remove();
+						callback && callback();
+					}}
+			]
+		})
+		p.show();
+		return p;
+	}
+
+	popupFn.confirm = function (title, content, yesCallback, noCallback) {
+		var p = $.popup({
+			title: title,
+			content: content,
+			modal: true,
+			className: "popup-css-confirm",
+			button: [
+				{
+					"text": "确认",
+					"action": function (event, popup, button, index) {
+						yesCallback && yesCallback();
+						popup.remove();
+					}
+				},
+				{
+					"text": "取消",
+					"action": function (event, popup, button, index) {
+						popup.remove();
+						noCallback && noCallback();
+					}
+				}
+			]
+		})
+		p.show();
+		return p;
+	}
+
+	popupFn.cute = function (content, timeout) {
+		var p = $.popup({
+			content: content,
+			modal: false,
+			className: "popup-css-cute"
+		})
+		p.show();
+		if (timeout != 0) {
+			timeout = timeout || 3000
+			setTimeout(function () {
+				p.remove();
+			}, timeout);
+		}
+		return p;
+	}
+
+	popupFn.loadingPopup = null;
+	popupFn.loadingStart = function () {
+		popup.loadingPopup = $.popup({
+			className: "popup-css-loading",
+			content: "",
+			modal: true
+		})
+		popup.loadingPopup.show();
+		return popup.loadingPopup;
+	}
+	popupFn.loadingStop = function () {
+		popup.loadingPopup && popup.loadingPopup.remove();
+		popup.loadingPopup = null
+	}
+
+
+//select > option 选择
+	popupFn.select = function (selector, callback) {
+		var oList = $("<ul class='popup-select-list'></ul>")
+		var oSelect = $(selector);
+		oSelect.children().each(function () {
+			var value = this.value;
+			var text = $(this).html();
+			var selected = this.selected;
+			var li = $("<li class='item' data-callback='selectCallback'></li>");
+			value && li.attr("data-value", value);
+			text && li.attr("data-text", text).html(text);
+			selected && li.attr("selected", "selected");
+			oList.append(li)
+		})
+
+		var p = $.popup({
+			title: "请选择",
+			content: oList,
+			className: "popup-css-select",
+			callback: {
+				selectCallback: function (event, popup) {
+					var oLi = $(event.target);
+					var value = oLi.data("value");
+					popup.remove();
+					var oldValue = oSelect.val();
+					oSelect.val(value)
+					if (oldValue != value) {
+						oSelect.trigger("change");
+						//同样也可以给其他表单赋值,触发表单change事件
+					}
+					callback && callback(value);
+				}
+			}
+		});
+		p.show();
+		return p;
+	};
+
+	window.popup = popupFn
+
+}(window.jQuery || window.Zepto));
