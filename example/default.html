@@ -52,155 +52,73 @@
         border-color: #e40;
     }
 
-    .cate-heading {
-        background-color: #EEE;
-        padding: 8px;
-    }
 </style>
 <body>
-<div class="cate-heading">扩展基本函数</div>
 <div class="content-block">
     <button id="popup-alert" class="btn btn-block">alert</button>
     <button id="popup-confirm" class=" btn btn-block">confirm</button>
     <button id="popup-cute" class="btn btn-block">cute</button>
-    <button id="popup-loading" class="btn btn-block">loadingStart && loadingStop</button>
-    <button id="select" class="btn btn-block">请选择 popup.select()</button>
-    <select name="select" id="select-option" hidden="hidden">
-        <option value="1">值1</option>
-        <option value="2" selected>值2</option>
-        <option value="3">值3</option>
-    </select>
+    <button id="popup-loading" class="btn btn-block">loading(true) && loading(false)</button>
+    <button id="popup" class="btn btn-block">popup</button>
 </div>
 
 <script>
 
     $("#popup-alert").click(function () {
-        popup.alert("标题", "消息内容", function () {
-            popup.cute("点击后执行回调函数");
+        popup.alert("消息内容", function () {
+            alert("确认");
         });
     })
 
     $("#popup-confirm").click(function () {
-        popup.confirm("标题", "消息内容", function () {
-            popup.cute("点击确认后执行回调函数");
+        popup.confirm("消息内容", function () {
+            alert("确认");
         }, function () {
-            popup.cute("点击取消后执行回调函数");
+            alert("取消");
         });
     })
 
     $("#popup-cute").click(function () {
-        popup.cute("消息内容", 3000);
-    })
-
+        popup.cute("消息内容");
+    });
 
     $("#popup-loading").click(function () {
-        popup.loadingStart();
+        popup.loading(true);
         setTimeout(function () {
-            popup.loadingStop();
+            popup.loading(false);
         }, 3000);
     })
 
-    $("#select").click(function () {
-        var p = popup.select("#select-option", function (value) {
-            alert(value)
-        })
-    });
+    $("#popup").click(function () {
+
+        $.popup({
+            title: "", // string
+            content: "内容...", // string | jq对象
+            button: [
+                {
+                    "text": "是",
+                    "callback": function (event, popup) {
+                        popup.close()
+                    }
+                },
+                {
+                    "text": "否",
+                    "callback": function (event, popup) {
+                        popup.close()
+                    }
+                }
+            ],
+            width: " 90%", //"300px" | 50% 设置主体宽度
+            height: "auto", //"300px" | 50%\ auto 设置主体高度
+            modal: false, //true 模态 | false 非模态（点击遮罩不移除弹出层）
+            className: "",//添加自定义样式名
+            callback: {
+                "clickCallbackExample": function (event, popup) {//在属于popup内部dom上自定义data-callback="clickCallbackExample"属性,点击后会回调执行这里
+                }
+            }
+        }).show()
+    })
 
 </script>
-
-<div class="cate-heading">使用类名便捷调用</div>
-<div class="content-block">
-    <button class="popup-alert btn btn-block"
-            data-popup-title="便捷温馨提示"
-            data-popup-content="便捷提示内容">
-        .popup-alert
-    </button>
-    <a class="popup-confirm btn btn-block"
-       href="http://www.baidu.com"
-       data-popup-title="便捷温馨提示"
-       data-popup-content="便捷提示内容">
-        超链接 .popup-confirm
-    </a>
-    <button class="popup-confirm btn btn-block"
-            data-href="http://www.baidu.com"
-            data-popup-title="便捷温馨提示"
-            data-popup-content="便捷提示内容">
-        其他标签 .popup-confirm
-    </button>
-    <button class="popup-confirm btn btn-block"
-            data-popup-title="便捷温馨提示"
-            data-popup-content="便捷提示内容"
-            data-yes-callback="alert('yes')"
-            data-no-callback="alert('no')">
-        带回调callback .popup-confirm
-    </button>
-    <button class="popup-cute btn btn-block"
-            data-popup-content="便捷提示内容">
-        .popup-cute
-    </button>
-    <button class="popup-cute btn btn-block"
-            data-popup-content="不自动消失便捷提示内容"
-            data-popup-timeout="0">
-        不自动消失 .popup-cute
-    </button>
-    <button class="popup-loading btn btn-block">.popup-loadingStart</button>
-    <button id="select2" class="btn btn-block popup-select" data-popup-data-selector="#select-option2">值2</button>
-    <select name="select2" id="select-option2" hidden="hidden">
-        <option value="1">值1</option>
-        <option value="2" selected>值2</option>
-        <option value="3">值3</option>
-    </select>
-
-</div>
-
-
-<script>
-    // 类名快捷调用 事件委托绑定
-    $(document).on("click", ".popup-alert", function () {
-        var title = $(this).data("popup-title");
-        var content = $(this).data("popup-content");
-        popup.alert(title, content);
-    })
-
-    $(document).on("click", ".popup-confirm", function (e) {
-        var title = $(this).data("popup-title");
-        var content = $(this).data("popup-content");
-        var href = $(this).attr("href") || $(this).data("href");
-        var yesCallback = $(this).data("popup-yes-callback");
-        var noCallback = $(this).data("popup-no-callback");
-        popup.confirm(title, content, function () {
-            href && (window.location.href = href);
-            yesCallback && eval(yesCallback);
-        }, function () {
-            noCallback && eval(noCallback);
-        });
-        e.stopPropagation();
-        e.preventDefault();
-    })
-
-    $(document).on("click", ".popup-cute", function () {
-        var title = $(this).data("popup-title");
-        var content = $(this).data("popup-content");
-        var timeout = parseInt($(this).data("popup-timeout"));
-        popup.cute(content, timeout);
-    })
-
-    $(document).on("click", ".popup-loading", function () {
-        popup.loadingStart();
-    })
-    $(document).on("click", ".popup-select", function () {
-        var selector = $(this).data("popup-data-selector");
-        popup.select(selector, function (value) {
-            $(selector)[0].value = value//.trigger("change");
-        })
-    })
-
-    $("#select-option2").change(function () {
-        var selectOption = $("option[value='" + this.value + "']", this)
-        $("#select2").html("change事件==>" + selectOption.html())
-    });
-</script>
-
-
 </body>
 </html>
